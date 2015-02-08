@@ -2,7 +2,6 @@ source "https://rubygems.org"
 
 ruby "2.2.0"
 
-gem "airbrake"
 gem "bourbon", "~> 4.1.0"
 gem "coffee-rails", "~> 4.1.0"
 gem "delayed_job_active_record"
@@ -51,5 +50,10 @@ group :test do
   gem "webmock"
 end
 
+gem 'omniauth'
+gem 'omniauth-twitter'
+gem 'twitter'
+
 group :staging, :production do
 end
+

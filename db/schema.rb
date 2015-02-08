@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150207183454) do
+ActiveRecord::Schema.define(version: 20150207232833) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -31,5 +31,43 @@ ActiveRecord::Schema.define(version: 20150207183454) do
   end
 
   add_index "delayed_jobs", ["priority", "run_at"], name: "delayed_jobs_priority", using: :btree
+
+  create_table "profiles", force: :cascade do |t|
+    t.string   "uid"
+    t.string   "name"
+    t.string   "screen_name"
+    t.string   "location"
+    t.string   "description"
+    t.integer  "followers_count", default: 0
+    t.integer  "friends_count",   default: 0
+    t.integer  "listed_count",    default: 0
+    t.integer  "favorites_count", default: 0
+    t.string   "lang"
+    t.integer  "statuses_count",  default: 0
+    t.boolean  "following_now"
+    t.boolean  "followed_before"
+    t.integer  "follower_id"
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+    t.integer  "followee_id"
+  end
+
+  add_index "profiles", ["follower_id"], name: "index_profiles_on_follower_id", using: :btree
+  add_index "profiles", ["uid", "follower_id"], name: "index_profiles_on_uid_and_follower_id", unique: true, using: :btree
+  add_index "profiles", ["uid"], name: "index_profiles_on_uid", using: :btree
+
+  create_table "users", force: :cascade do |t|
+    t.string   "secret"
+    t.string   "token"
+    t.string   "uid"
+    t.string   "name"
+    t.string   "image"
+    t.string   "session_token"
+    t.string   "nickname"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+  end
+
+  add_index "users", ["uid"], name: "index_users_on_uid", unique: true, using: :btree
 
 end

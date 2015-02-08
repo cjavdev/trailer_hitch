@@ -61,25 +61,111 @@ class User < ActiveRecord::Base
     @followers ||= twitter_client.followers
   end
 
+  def twitter_follower_ids
+    @twitter_follower_ids ||= twitter_client.follower_ids.map { |f| f }
+  end
+
   def twitter_friend_ids
-    @twitter_friend_ids ||= twitter_client.friend_ids
+    @twitter_friend_ids ||= twitter_client.friend_ids.map { |f| f }
   end
 
   def update_out_profiles2
     twitter_friend_ids.each do |friend_id|
       puts "Checking out #{ friend_id }"
       if !profile_exists_for?(friend_id)
-        create_profile_for(friend_id)
+        create_out_profile_for(friend_id)
+      elsif !out_profile_exists_for?(friend_id)
+        update_to_out_profile_for(friend_id)
       end
+    end
+    puts "Unfollowed people"
+    no_longer_following_uids.each do |not_friend_id|
+      pro = Profile.find_by(follower_id: id, uid: not_friend_id)
+      puts "Unfollowed #{ pro.name }"
+      pro.update(following_now: false, unfollowed_at: Date.current)
     end
   end
 
-  def create_profile_for(friend_id)
+  def update_in_profiles2
+    twitter_follower_ids.each do |follower_id|
+      puts "Checking out #{ follower_id }"
+      if !profile_exists_for?(follower_id)
+        create_in_profile_for(follower_id)
+      elsif !in_profile_exists_for?(follower_id)
+        update_to_in_profile_for(follower_id)
+      end
+    end
+    puts "Unfollowed me"
+    no_longer_followed_by_uids.each do |not_follower_id|
+      pro = Profile.find_by(followee_id: id, uid: not_follower_id)
+      puts "Unfollowed #{ pro.name }"
+      pro.update(following_me_now: false, unfollowed_me_at: Date.current)
+    end
+  end
+
+  def update_to_out_profile_for(friend_id)
+    pro = Profile.find_by(followee_id: id, uid: friend_id)
+    pro.update({
+      follower_id: id,
+      following_now: true,
+      followed_at: Date.current
+    })
+  end
+
+  def update_to_in_profile_for(follower_id)
+    pro = Profile.find_by(follower_id: id, uid: follower_id)
+    pro.update({
+      followee_id: id,
+      following_me_now: true,
+      followed_me_at: Date.current
+    })
+  end
+
+  def out_profile_uids
+    Profile.where(follower_id: id, following_now: true).pluck(:uid).map(&:to_i)
+  end
+
+  def in_profile_uids
+    Profile.where(followee_id: id, following_me_now: true).pluck(:uid).map(&:to_i)
+  end
+
+  def no_longer_following_uids
+    out_profile_uids - twitter_friend_ids
+  end
+
+  def no_longer_followed_by_uids
+    in_profile_uids - twitter_follower_ids
+  end
+
+  def create_in_profile_for(friend_id)
+    raise "Invalid Friend Id: #{ friend_id }" unless friend_id.is_a?(Integer)
+
+    user = twitter_client.user(friend_id)
+    Profile.create({
+      followee_id: id,
+      followed_me_at: Date.current,
+      uid: user.id.to_s,
+      name: user.name,
+      screen_name: user.screen_name,
+      location: user.location,
+      description: user.description,
+      lang: user.lang,
+      following_me_now: true,
+      followers_count: user.followers_count,
+      friends_count: user.friends_count,
+      favorites_count: user.favourites_count,
+      listed_count: user.listed_count,
+      statuses_count: user.statuses_count
+    })
+  end
+
+  def create_out_profile_for(friend_id)
     raise "Invalid Friend Id: #{ friend_id }" unless friend_id.is_a?(Integer)
 
     user = twitter_client.user(friend_id)
     Profile.create({
       follower_id: id,
+      followed_at: Date.current,
       uid: user.id.to_s,
       name: user.name,
       screen_name: user.screen_name,
@@ -96,83 +182,21 @@ class User < ActiveRecord::Base
     })
   end
 
+  def out_profile_exists_for?(profile_id)
+    Profile.exists?(
+      ['uid = ? AND follower_id = ?', profile_id.to_s, id]
+    )
+  end
+
+  def in_profile_exists_for?(profile_id)
+    Profile.exists?(
+      ['uid = ? AND followee_id = ?', profile_id.to_s, id]
+    )
+  end
+
   def profile_exists_for?(profile_id)
     Profile.exists?(
       ['uid = ? AND (follower_id = ? OR followee_id = ?)', profile_id.to_s, id, id]
     )
-  end
-
-  def update_out_profiles
-    twitter_friends.each do |follower|
-      pro = Profile.where(
-        'uid = ? AND (follower_id = ? OR followee_id = ?)', follower.id.to_s, id, id
-      ).first
-
-      if pro
-        pro.update({
-          follower_id: id,
-          location: follower.location,
-          followers_count: follower.followers_count,
-          friends_count: follower.friends_count,
-          favorites_count: follower.favourites_count,
-          listed_count: follower.listed_count,
-          statuses_count: follower.statuses_count
-        })
-      else
-        Profile.create({
-          follower_id: id,
-          uid: follower.id.to_s,
-          name: follower.name,
-          screen_name: follower.screen_name,
-          location: follower.location,
-          description: follower.description,
-          lang: follower.lang,
-          following_now: true,
-          followed_before: true,
-          followers_count: follower.followers_count,
-          friends_count: follower.friends_count,
-          favorites_count: follower.favourites_count,
-          listed_count: follower.listed_count,
-          statuses_count: follower.statuses_count
-        })
-      end
-    end
-  end
-
-  def update_in_profiles
-    twitter_followers.each do |follower|
-      pro = Profile.where(
-        'uid = ? AND (follower_id = ? OR followee_id = ?)', follower.id.to_s, id, id
-      ).first
-
-      if pro
-        pro.update({
-          followee_id: id,
-          location: follower.location,
-          followers_count: follower.followers_count,
-          friends_count: follower.friends_count,
-          favorites_count: follower.favourites_count,
-          listed_count: follower.listed_count,
-          statuses_count: follower.statuses_count
-        })
-      else
-        Profile.create({
-          followee_id: id,
-          uid: follower.id.to_s,
-          name: follower.name,
-          screen_name: follower.screen_name,
-          location: follower.location,
-          description: follower.description,
-          lang: follower.lang,
-          following_now: true,
-          followed_before: true,
-          followers_count: follower.followers_count,
-          friends_count: follower.friends_count,
-          favorites_count: follower.favourites_count,
-          listed_count: follower.listed_count,
-          statuses_count: follower.statuses_count
-        })
-      end
-    end
   end
 end

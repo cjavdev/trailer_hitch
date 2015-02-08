@@ -1,0 +1,50 @@
+<div class="user-show">
+  <h1>Manage Twitter Followers</h1>
+
+  <div class="profile-list">
+    <h2>People Who Follow You (<%= current_user.in_profiles.where(following_me_now: true).count %>)</h2>
+    <ul>
+      <% current_user.in_profiles.where(following_me_now: true).each do |pro| %>
+      <li><%= pro.name %></li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="profile-list">
+    <h2>People Who You've followed (<%= current_user.out_profiles.where(following_now: true).count %>)</h2>
+    <ul>
+      <% current_user.out_profiles.where(following_now: true).each do |pro| %>
+      <li><%= pro.name %></li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="profile-list">
+    <h2>People Who You've followed but haven't followed you (<%= current_user.out_profiles.where(followee_id: nil, following_now: true).count %>)</h2>
+    <ul>
+      <% current_user.out_profiles.where(followee_id: nil, following_now: true).each do |pro| %>
+      <li>
+      <%= pro.name %>
+      <%= pro.followed_at.to_date %>
+      </li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="profile-list">
+    <h2>People Who You've un followed (<%= current_user.out_profiles.where(following_now: false).count %>)</h2>
+    <ul>
+      <% current_user.out_profiles.where(following_now: false).each do |pro| %>
+      <li><%= pro.name %></li>
+      <% end %>
+    </ul>
+  </div>
+  <div class="profile-list">
+    <h2>People Who have unfollowed you (<%= current_user.in_profiles.where(following_me_now: false).count %>)</h2>
+    <ul>
+      <% current_user.in_profiles.where(following_me_now: false).each do |pro| %>
+      <li><%= pro.name %></li>
+      <% end %>
+    </ul>
+  </div>
+</div>

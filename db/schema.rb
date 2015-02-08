@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150207232833) do
+ActiveRecord::Schema.define(version: 20150208200159) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -38,18 +38,23 @@ ActiveRecord::Schema.define(version: 20150207232833) do
     t.string   "screen_name"
     t.string   "location"
     t.string   "description"
-    t.integer  "followers_count", default: 0
-    t.integer  "friends_count",   default: 0
-    t.integer  "listed_count",    default: 0
-    t.integer  "favorites_count", default: 0
+    t.integer  "followers_count",  default: 0
+    t.integer  "friends_count",    default: 0
+    t.integer  "listed_count",     default: 0
+    t.integer  "favorites_count",  default: 0
     t.string   "lang"
-    t.integer  "statuses_count",  default: 0
+    t.integer  "statuses_count",   default: 0
     t.boolean  "following_now"
     t.boolean  "followed_before"
     t.integer  "follower_id"
-    t.datetime "created_at",                  null: false
-    t.datetime "updated_at",                  null: false
+    t.datetime "created_at",                      null: false
+    t.datetime "updated_at",                      null: false
     t.integer  "followee_id"
+    t.date     "unfollowed_at"
+    t.boolean  "following_me_now", default: true
+    t.date     "followed_at"
+    t.date     "unfollowed_me_at"
+    t.date     "followed_me_at"
   end
 
   add_index "profiles", ["follower_id"], name: "index_profiles_on_follower_id", using: :btree

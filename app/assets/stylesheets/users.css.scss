@@ -1,0 +1,7 @@
+.user-show {
+  @include outer-container;
+}
+
+.profile-list {
+  @include span-columns(3);
+}

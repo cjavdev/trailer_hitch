@@ -19,13 +19,15 @@
     </ul>
   </div>
 
-  <div class="profile-list">
+  <div class="">
     <h2>People Who You've followed but haven't followed you (<%= current_user.out_profiles.where(followee_id: nil, following_now: true).count %>)</h2>
     <ul>
-      <% current_user.out_profiles.where(followee_id: nil, following_now: true).each do |pro| %>
+      <% current_user.out_profiles.where(followee_id: nil, following_now: true).order('(followers_count / (friends_count + 1))').each do |pro| %>
       <li>
-      <%= pro.name %>
-      <%= pro.followed_at.to_date %>
+        <%= pro.followers_count.fdiv(pro.friends_count + 1).round(2) %>
+        <%= link_to pro.name, "https://twitter.com/#{ pro.screen_name }" %>
+        <%= pro.followers_count %> / 
+        <%= pro.friends_count %>
       </li>
       <% end %>
     </ul>

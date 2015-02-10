@@ -1,11 +1,35 @@
 <div class="user-show">
   <h1>Manage Twitter Followers</h1>
+  <%= button_to "Update", update_path %>
+
+  <div class="">
+    <h2>People Who You've followed but haven't followed you (<%= current_user.out_profiles.where(followee_id: nil, following_now: true).count %>)</h2>
+    <ul>
+      <% current_user.out_profiles.where("followee_id IS NULL AND following_now = true").order('statuses_count asc').each do |pro| %>
+      <li>
+        <%= pro.followers_count.fdiv(pro.friends_count + 1).round(2) %>
+        <%= link_to pro.name, "https://twitter.com/#{ pro.screen_name }" %>
+        <%= pro.followers_count %> /
+        <%= pro.friends_count %> /
+        <%= pro.statuses_count %>
+        <div>
+          <%= pro.description %>
+        </div>
+        <div>
+          <%= button_to "Unfollow", follow_path(pro), method: :delete, remote: true %>
+        </div>
+      </li>
+      <% end %>
+    </ul>
+  </div>
 
   <div class="profile-list">
     <h2>People Who Follow You (<%= current_user.in_profiles.where(following_me_now: true).count %>)</h2>
     <ul>
       <% current_user.in_profiles.where(following_me_now: true).each do |pro| %>
-      <li><%= pro.name %></li>
+      <li>
+        <%= link_to pro.name, "https://twitter.com/#{ pro.screen_name }" %>
+      </li>
       <% end %>
     </ul>
   </div>
@@ -14,20 +38,8 @@
     <h2>People Who You've followed (<%= current_user.out_profiles.where(following_now: true).count %>)</h2>
     <ul>
       <% current_user.out_profiles.where(following_now: true).each do |pro| %>
-      <li><%= pro.name %></li>
-      <% end %>
-    </ul>
-  </div>
-
-  <div class="">
-    <h2>People Who You've followed but haven't followed you (<%= current_user.out_profiles.where(followee_id: nil, following_now: true).count %>)</h2>
-    <ul>
-      <% current_user.out_profiles.where(followee_id: nil, following_now: true).order('(followers_count / (friends_count + 1))').each do |pro| %>
       <li>
-        <%= pro.followers_count.fdiv(pro.friends_count + 1).round(2) %>
         <%= link_to pro.name, "https://twitter.com/#{ pro.screen_name }" %>
-        <%= pro.followers_count %> / 
-        <%= pro.friends_count %>
       </li>
       <% end %>
     </ul>
@@ -37,15 +49,20 @@
     <h2>People Who You've un followed (<%= current_user.out_profiles.where(following_now: false).count %>)</h2>
     <ul>
       <% current_user.out_profiles.where(following_now: false).each do |pro| %>
-      <li><%= pro.name %></li>
+      <li>
+        <%= link_to pro.name, "https://twitter.com/#{ pro.screen_name }" %>
+      </li>
       <% end %>
     </ul>
   </div>
+
   <div class="profile-list">
     <h2>People Who have unfollowed you (<%= current_user.in_profiles.where(following_me_now: false).count %>)</h2>
     <ul>
       <% current_user.in_profiles.where(following_me_now: false).each do |pro| %>
-      <li><%= pro.name %></li>
+        <li>
+          <%= link_to pro.name, "https://twitter.com/#{ pro.screen_name }" %>
+        </li>
       <% end %>
     </ul>
   </div>

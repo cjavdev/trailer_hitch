@@ -6,7 +6,7 @@ class ApplicationController < ActionController::Base
   helper_method :current_user
 
   def require_user!
-    redirect_to pages_path('welcome') unless logged_in?
+    redirect_to '/pages/welcome' unless logged_in?
   end
 
   def logged_in?

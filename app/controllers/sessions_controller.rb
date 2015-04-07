@@ -1,8 +1,8 @@
 class SessionsController < ApplicationController
   def create
     @user = User.find_with_omniauth(omniauth_hash)
-
-    if @user
+    if !!@user
+      login(@user)
       redirect_to root_url
     else
       flash[:errors] = ["Invalid login"]

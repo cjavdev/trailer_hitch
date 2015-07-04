@@ -138,25 +138,27 @@ class User < ActiveRecord::Base
   end
 
   def create_in_profile_for(friend_id)
-    raise "Invalid Friend Id: #{ friend_id }" unless friend_id.is_a?(Integer)
+    InFollow.new(self, friend_id).call
 
-    user = twitter_client.user(friend_id)
-    Profile.create({
-      followee_id: id,
-      followed_me_at: Date.current,
-      uid: user.id.to_s,
-      name: user.name,
-      screen_name: user.screen_name,
-      location: user.location,
-      description: user.description,
-      lang: user.lang,
-      following_me_now: true,
-      followers_count: user.followers_count,
-      friends_count: user.friends_count,
-      favorites_count: user.favourites_count,
-      listed_count: user.listed_count,
-      statuses_count: user.statuses_count
-    })
+    # raise "Invalid Friend Id: #{ friend_id }" unless friend_id.is_a?(Integer)
+    #
+    # user = twitter_client.user(friend_id)
+    # Profile.create({
+    #   followee_id: id,
+    #   followed_me_at: Date.current,
+    #   uid: user.id.to_s,
+    #   name: user.name,
+    #   screen_name: user.screen_name,
+    #   location: user.location,
+    #   description: user.description,
+    #   lang: user.lang,
+    #   following_me_now: true,
+    #   followers_count: user.followers_count,
+    #   friends_count: user.friends_count,
+    #   favorites_count: user.favourites_count,
+    #   listed_count: user.listed_count,
+    #   statuses_count: user.statuses_count
+    # })
   end
 
   def create_out_profile_for(friend_id)
@@ -180,6 +182,10 @@ class User < ActiveRecord::Base
       listed_count: user.listed_count,
       statuses_count: user.statuses_count
     })
+  end
+
+  def followed_non_followers
+    out_profiles.where(followee_id: nil, following_now: true)
   end
 
   def out_profile_exists_for?(profile_id)

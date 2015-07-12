@@ -7,7 +7,7 @@ class InFollow
   end
 
   def call
-    if create_in_follow && never_pestered?
+    if create_in_follow
       thank_for_following
       self.delay(run_at: 1.minutes.from_now).ask_question
     end

@@ -7,18 +7,18 @@ class InFollow
   end
 
   def call
-    if create_in_follow
+    if create_in_follow && never_pestered?
       thank_for_following
       self.delay(run_at: 1.minutes.from_now).ask_question
     end
   end
 
   def thank_for_following
-    twitter_client.dm(twitter_client.user(in_friend_id), thank_you_message)
+    # twitter_client.dm(twitter_client.user(in_friend_id), thank_you_message)
   end
 
   def ask_question
-    twitter_client.dm(twitter_client.user(in_friend_id), question_message)
+    # twitter_client.dm(twitter_client.user(in_friend_id), question_message)
   end
 
   def thank_you_message

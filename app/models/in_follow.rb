@@ -7,18 +7,24 @@ class InFollow
   end
 
   def call
-    if create_in_follow
+    if @profile = create_in_follow
       thank_for_following
       self.delay(run_at: 1.minutes.from_now).ask_question
     end
   end
 
   def thank_for_following
-    # twitter_client.dm(twitter_client.user(in_friend_id), thank_you_message)
+    unless @profile.thanked_for_following
+      twitter_client.dm(twitter_client.user(in_friend_id), thank_you_message)
+      @profile.update(thanked_for_following: true)
+    end
   end
 
   def ask_question
-    # twitter_client.dm(twitter_client.user(in_friend_id), question_message)
+    unless @profile.asked_initial_question
+      twitter_client.dm(twitter_client.user(in_friend_id), question_message)
+      @profile.update(asked_initial_question: true)
+    end
   end
 
   def thank_you_message
@@ -34,27 +40,33 @@ class InFollow
   end
 
   def create_in_follow
-    unless in_friend_id.is_a?(Integer)
-      raise "Invalid Friend Id: #{ in_friend_id }"
+    begin
+      unless in_friend_id.is_a?(Integer)
+        raise "Invalid Friend Id: #{ in_friend_id }"
+      end
+    rescue TypeError => e
+      puts e.backtrace
     end
 
     user = twitter_client.user(in_friend_id)
-    Profile.create({
-      followee_id: user.id,
-      followed_me_at: Date.current,
-      uid: user.id.to_s,
-      name: user.name,
-      screen_name: user.screen_name,
-      location: user.location,
-      description: user.description,
-      lang: user.lang,
-      following_me_now: true,
-      followers_count: user.followers_count,
-      friends_count: user.friends_count,
-      favorites_count: user.favourites_count,
-      listed_count: user.listed_count,
-      statuses_count: user.statuses_count
-    })
+    if user
+      Profile.create({
+        followee_id: user.id,
+        followed_me_at: Date.current,
+        uid: user.id.to_s,
+        name: user.name,
+        screen_name: user.screen_name,
+        location: user.location,
+        description: user.description,
+        lang: user.lang,
+        following_me_now: true,
+        followers_count: user.followers_count,
+        friends_count: user.friends_count,
+        favorites_count: user.favourites_count,
+        listed_count: user.listed_count,
+        statuses_count: user.statuses_count
+      })
+    end
   end
 
   def twitter_client

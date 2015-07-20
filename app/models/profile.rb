@@ -31,6 +31,8 @@ class Profile < ActiveRecord::Base
   belongs_to :follower, class_name: "User", foreign_key: :follower_id
   belongs_to :followee, class_name: "User", foreign_key: :followee_id
 
+  validates :uid, uniqueness: true
+
   def unfollow!
     follower.twitter_client.unfollow(uid.to_i)
     self.unfollowed_at = Date.current
